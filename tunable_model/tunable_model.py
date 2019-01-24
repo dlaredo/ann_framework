@@ -460,3 +460,153 @@ class SequenceTunableModelRegression(TunableModel):
 		@property
 		def y_predicted_rounded(self):
 			return self._y_predicted_rounded
+
+
+class SequenceTunableModelClassification(TunableModel):
+
+		def __init__(self, model_name, model, lib_type, data_handler, data_scaler = None, epochs = 250, batch_size = 512):
+
+			super().__init__(model_name, model, lib_type, epochs=epochs, batch_size=batch_size)
+
+			#public properties
+			self._data_handler = data_handler
+			self._data_scaler = data_scaler  #Can be any scaler from scikit or using the same interface
+
+			#read only properties
+			self._y_pred_rounded = None
+
+
+		def load_data(self, unroll=False, cross_validation_ratio=0, verbose=0):
+			"""Load the data using the corresponding Data Handler, apply the corresponding scaling and reshape"""
+
+			#A call to the Data Handler is done, DataHandler must deliver data with shape X = (samples, features), y = (samples, size_output)
+			self._data_handler.load_data(unroll=unroll, verbose=verbose, cross_validation_ratio=cross_validation_ratio)
+
+			#Fill the arrays with the data from the DataHandler
+			X_train = self._data_handler.X_train
+			X_crossVal = self._data_handler.X_crossVal
+			X_test = self._data_handler.X_test
+			self._y_train = self._data_handler.y_train
+			self._y_crossVal = self._data_handler.y_crossVal
+			self._y_test = self._data_handler.y_test
+
+			#Rescale the data
+
+			#Implemented in the dataHandler instead due to problems with sequenced data.
+
+			#self._data_scaler = None
+			if self._data_scaler != None:
+				X_train = self._data_scaler.fit_transform(X_train)
+				X_test = self._data_scaler.transform(X_test)
+
+				if cross_validation_ratio > 0:
+					X_crossVal = self._data_scaler.transform(X_crossVal)
+
+			self._X_train = X_train
+			self._X_crossVal = X_crossVal
+			self._X_test = X_test
+
+			self._y_train = self._y_train
+			self._y_crossVal = self._y_crossVal
+			self._y_test = self._y_test
+
+			#self._y_train = np.ravel(self._y_train)
+			#self._y_crossVal = np.ravel(self._y_crossVal)
+			#self._y_test = np.ravel(self._y_test)
+
+
+		def evaluate_model(self, metrics=[], cross_validation = False, round = 0, tf_session=None):
+			"""Evaluate the performance of the model"""
+            
+			self.predict_model(cross_validation = cross_validation, tf_session = tf_session)
+
+			if cross_validation == True:
+				y_true = self._y_crossVal
+			else:
+				y_true = self.y_test
+
+			y_true = np.ravel(y_true)
+
+			for metric in metrics:
+				score = custom_scores.compute_score(metric, y_true, self._y_predicted)
+				self._scores[metric] = score
+
+
+		def print_data(self, print_top=True):
+			"""Print the shapes of the data and the first 5 rows"""
+
+			if self._X_train is None:
+				print("No data available")
+				return
+
+			print("Printing shapes\n")
+
+			print("Training data (X, y)")
+			print(self._X_train.shape)
+			print(self._y_train.shape)
+
+			if self._X_crossVal is not None:
+				print("Cross-Validation data (X, y)")
+				print(self._X_crossVal.shape)
+				print(self._y_crossVal.shape)
+
+			print("Testing data (X, y)")
+			print(self._X_test.shape)
+			print(self._y_test.shape)
+
+			if print_top == True:
+				print("Printing first 5 elements\n")
+
+				print("Training data (X, y)")
+				print(self._X_train[:5,:])
+				print(self._y_train[:5])
+
+				if self._X_crossVal is not None:
+					print("Cross-Validation data (X, y)")
+					print(self._X_crossVal[:5,:])
+					print(self._y_crossVal[:5])
+
+				print("Testing data (X, y)")
+				print(self._X_test[:5,:])
+				print(self._y_test[:5])
+			else:
+				print("Printing last 5 elements\n")
+
+				print("Training data (X, y)")
+				print(self._X_train[-5:,:])
+				print(self._y_train[-5:])
+
+				if self._X_crossVal is not None:
+					print("Cross-Validation data (X, y)")
+					print(self._X_crossVal[-5:,:])
+					print(self._y_crossVal[-5:])
+
+				print("Testing data (X, y)")
+				print(self._X_test[-5:,:])
+				print(self._y_test[-5:])
+
+
+		#Property definition
+
+		@property
+		def data_handler(self):
+			return self._data_handler
+
+		@data_handler.setter
+		def data_handler(self, data_handler):
+			self._data_handler = data_handler
+
+		@property
+		def data_scaler(self):
+			return self._data_scaler
+
+		@data_scaler.setter
+		def data_scaler(self, data_scaler):
+			self._data_scaler = data_scaler
+
+
+		#Read only properties
+
+		@property
+		def y_predicted_rounded(self):
+			return self._y_predicted_rounded
