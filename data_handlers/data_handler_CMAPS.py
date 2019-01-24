@@ -49,6 +49,7 @@ class CMAPSDataHandler(SequenceDataHandler):
 		self._file_rul = data_folder+'/RUL_FD00'+self.dataset_number+'.txt'
 		self._recompute_df = False
 		#self._load_from_file = True
+		self._crossVal_ratio = 0
 		
 		self._column_names = {0:'Unit Number', 1:'Cycle', 2:'Op. Settings 1', 3:'Op. Settings 2', 4:'Op. Settings 3', 5:'T2',
 			6:'T24', 7:'T30', 8:'T50', 9:'P2', 10:'P15', 11:'P30', 12:'Nf', 13:'Nc', 14:'epr', 15:'Ps30', 
@@ -147,6 +148,17 @@ class CMAPSDataHandler(SequenceDataHandler):
 	def load_data(self, unroll=True, cross_validation_ratio=0, verbose=0):
 		"""Load the data using the specified parameters"""
 
+		self._X_train = None
+		self._y_train = None
+		self._X_test = None
+		self._y_test = None
+		self._X_crossVal = None
+		self._y_crossVal = None
+
+		if self._crossVal_ratio != cross_validation_ratio:
+			self._recompute_df = True
+			self._crossVal_ratio = cross_validation_ratio
+		
 		if verbose == 1:
 			print("Loading data for dataset {} with window_size of {}, stride of {} and maxRUL of {}. Cros-Validation ratio {}".format(self._dataset_number, 
 				self._sequence_length, self._sequence_stride, self._max_rul, cross_validation_ratio))
@@ -176,7 +188,7 @@ class CMAPSDataHandler(SequenceDataHandler):
 
 	def generate_train_arrays(self, cross_validation_ratio=0):
 		"""From the dataframes generate the feature arrays and their labels"""
-
+		
 		X_train_list, y_train_list = list(), list()
 		X_crossVal_list, y_crossVal_list = list(), list()
 
@@ -381,6 +393,10 @@ class CMAPSDataHandler(SequenceDataHandler):
 	@property
 	def recompute_df(self):
 		return self._recompute_df
+
+	@property
+	def crossVal_ratio(self):
+		return self._crossVal_ratio
 
 
 
