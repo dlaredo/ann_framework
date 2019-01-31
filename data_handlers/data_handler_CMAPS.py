@@ -259,30 +259,6 @@ class CMAPSDataHandler(SequenceDataHandler):
 
 		return (df_train, df_crossVal, num_train, num_crossVal)
 
-	
-	"""
-	def split_dataFrames(self, df, trimmed_rul, splitting_ratio):
-
-		num_engines = df['Unit Number'].max()
-
-		shuffled_engines = list(range(1,num_engines+1))
-		random.shuffle(shuffled_engines)
-
-		i = int(splitting_ratio*num_engines)
-		num_crossVal = i
-		num_train = num_engines - num_crossVal
-
-		crossVal_engines = shuffled_engines[:i]
-		train_engines = shuffled_engines[i:]
-		trimmed_rul_train = trimmed_rul[:i]
-		trimmed_rul_crossVal = trimmed_rul[i:]
-
-		df_train = df[df['Unit Number'].isin(train_engines)]
-		df_crossVal = df[df['Unit Number'].isin(crossVal_engines)]
-
-		return (df_train, df_crossVal, num_train, num_crossVal, trimmed_rul_train, trimmed_rul_crossVal)
-	"""
-
 
 	def generate_cross_validation_from_df(self, df, sequence_length):
 		"""Given a dataframe truncate the data to generate cross validation dataset"""

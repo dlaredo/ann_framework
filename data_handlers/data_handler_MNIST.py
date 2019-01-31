@@ -74,7 +74,59 @@ class MNISTDataHandler():
 		if cross_validation_ratio != 0:
 			self._X_train, self._X_crossVal, self._y_train, self._y_crossVal = train_test_split(self._X_train, self._y_train, train_size=1-cross_validation_ratio)
 
-        
+
+	def print_data(self, print_top=True):
+		"""Print the shapes of the data and the first 5 rows"""
+
+		if self._X_train is None:
+			print("No data available")
+			return
+
+		print("Printing shapes\n")
+
+		print("Training data (X, y)")
+		print(self._X_train.shape)
+		print(self._y_train.shape)
+
+		if self._X_crossVal is not None:
+			print("Cross-Validation data (X, y)")
+			print(self._X_crossVal.shape)
+			print(self._y_crossVal.shape)
+
+		print("Testing data (X, y)")
+		print(self._X_test.shape)
+		print(self._y_test.shape)
+
+		if print_top == True:
+			print("Printing first 5 elements\n")
+
+			print("Training data (X, y)")
+			print(self._X_train[:5,:])
+			print(self._y_train[:5])
+
+			if self._X_crossVal is not None:
+				print("Cross-Validation data (X, y)")
+				print(self._X_crossVal[:5,:])
+				print(self._y_crossVal[:5])
+
+			print("Testing data (X, y)")
+			print(self._X_test[:5,:])
+			print(self._y_test[:5])
+		else:
+			print("Printing last 5 elements\n")
+
+			print("Training data (X, y)")
+			print(self._X_train[-5:,:])
+			print(self._y_train[-5:])
+
+			if self._X_crossVal is not None:
+				print("Cross-Validation data (X, y)")
+				print(self._X_crossVal[-5:,:])
+				print(self._y_crossVal[-5:])
+
+			print("Testing data (X, y)")
+			print(self._X_test[-5:,:])
+			print(self._y_test[-5:])
 
 	#Property definition
 
@@ -125,5 +177,6 @@ class MNISTDataHandler():
 	@y_test.setter
 	def y_test(self, y_test):
 		self._y_test = y_test
+
 
 
