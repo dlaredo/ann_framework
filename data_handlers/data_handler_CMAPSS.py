@@ -4,7 +4,7 @@ import pandas as pd
 
 from .sequenced_data_handler import SequenceDataHandler
 
-class CMAPSDataHandler(SequenceDataHandler):
+class CMAPSSDataHandler(SequenceDataHandler):
 
 	'''
     5    T2        - Total temperature at fan inlet      R

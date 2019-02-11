@@ -8,9 +8,7 @@ from keras.callbacks import TensorBoard
 
 from math import sqrt
 
-import custom_scores
-
-import CMAPSAuxFunctions
+from .. import custom_scores, aux_functions
 
 class TunableModel():
 
@@ -60,7 +58,7 @@ class TunableModel():
 				#SVG(model_to_dot(happyModel).create(prog='dot', format='svg'))
 
 
-	def train_model(self, verbose=0, learningRate_scheduler = None, tf_session=None, tensorboard=None):
+	def train_model(self, verbose=0, learningRate_scheduler = None, tf_session=None, tensorboard=None, get_minibatches_function_handle=None, **kwargs):
 		"""Train the current model using keras/scikit"""
 
 		startTime = time.clock()
@@ -91,7 +89,7 @@ class TunableModel():
 			if tf_session == None:
 				print("A valid tensorflow session is needed to perform the training")
 			else:
-				self.train_tf(tf_session, verbose = verbose)
+				self.train_tf(tf_session, get_minibatches_function_handle=get_minibatches_function_handle, verbose=verbose, **kwargs)
 
 		else:
 			print('Library not supported')
@@ -138,7 +136,7 @@ class TunableModel():
 			self._scores["score_"+str(i+1)] =  default_scores[i]
 
 
-	def train_tf(self, tf_session, verbose = 1):
+	def train_tf(self, tf_session, get_minibatches_function_handle, verbose = 1, **kwargs):
 		"""Function to train models in tensorflow"""
 
 		#Retrieve model variables
@@ -148,20 +146,17 @@ class TunableModel():
 		total_cost = self._model['total_cost']
 		cost = self._model['cost']
 
-
 		#To reset all variables
 		tf_session.run(tf.global_variables_initializer())
 		avg_cost = 0.0
-
-		#print(self.X_train)
-		#print(self.y_train)
 
 		for epoch in range(self.epochs):
 
 			cost_tot = 0.0
 			cost_reg_tot = 0.0
 
-			X_batches, y_batches, total_batch = CMAPSAuxFunctions.get_minibatches(self.X_train, self.y_train, self._batch_size)
+			#X_batches, y_batches, total_batch = aux_functions.get_minibatches(self.X_train, self.y_train, self._batch_size)
+			X_batches, y_batches, total_batch = get_minibatches_function_handle(self.X_train, self.y_train, self._batch_size, **kwargs)
 
 			#Train with the minibatches
 			for i in range(total_batch):
@@ -309,11 +304,11 @@ class SequenceTunableModelRegression(TunableModel):
 			self._y_pred_rounded = None
 
 
-		def load_data(self, unroll=False, cross_validation_ratio=0, verbose=0):
+		def load_data(self, unroll=False, cross_validation_ratio=0, verbose=0, **kwargs):
 			"""Load the data using the corresponding Data Handler, apply the corresponding scaling and reshape"""
 
 			#A call to the Data Handler is done, DataHandler must deliver data with shape X = (samples, features), y = (samples, size_output)
-			self._data_handler.load_data(unroll=unroll, verbose=verbose, cross_validation_ratio=cross_validation_ratio)
+			self._data_handler.load_data(unroll=unroll, verbose=verbose, cross_validation_ratio=cross_validation_ratio, **kwargs)
 
 			#Fill the arrays with the data from the DataHandler
 			X_train = self._data_handler.X_train
@@ -476,11 +471,11 @@ class SequenceTunableModelClassification(TunableModel):
 			self._y_pred_rounded = None
 
 
-		def load_data(self, unroll=False, cross_validation_ratio=0, verbose=0):
+		def load_data(self, unroll=False, cross_validation_ratio=0, verbose=0, **kwargs):
 			"""Load the data using the corresponding Data Handler, apply the corresponding scaling and reshape"""
 
 			#A call to the Data Handler is done, DataHandler must deliver data with shape X = (samples, features), y = (samples, size_output)
-			self._data_handler.load_data(unroll=unroll, verbose=verbose, cross_validation_ratio=cross_validation_ratio)
+			self._data_handler.load_data(unroll=unroll, verbose=verbose, cross_validation_ratio=cross_validation_ratio, **kwargs)
 
 			#Fill the arrays with the data from the DataHandler
 			X_train = self._data_handler.X_train
