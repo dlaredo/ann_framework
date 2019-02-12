@@ -510,7 +510,7 @@ class SequenceTunableModelClassification(TunableModel):
 			#self._y_test = np.ravel(self._y_test)
 
 
-		def evaluate_model(self, metrics=[], cross_validation = False, tf_session=None):
+		def evaluate_model(self, metrics=[], cross_validation = False, round=0, tf_session=None):
 			"""Evaluate the performance of the model"""
             
 			self.predict_model(cross_validation = cross_validation, tf_session = tf_session)
