@@ -35,7 +35,7 @@ class OscillatorDataHandler():
 		"""Unroll just to keep compatibility with the API"""
 
 		x = kwargs['x']
-		delta_x = kwargs['delta_x']
+		boundaries = kwargs['boundaries']
 		n = kwargs['n']
 
 		if verbose == 1:
@@ -45,7 +45,7 @@ class OscillatorDataHandler():
 			print("Error, cross validation must be between 0 and 1")
 			return
 
-		self._X_train, self._y_train = self.sample_data(x, delta_x, n)
+		self._X_train, self._y_train = self.sample_data(x, boundaries, n)
 
 		if self._data_scaler != None:
 			self._X_train = self._data_scaler.fit_transform(self._X_train)
@@ -116,11 +116,11 @@ class OscillatorDataHandler():
 		return X, y
 
 
-	def grid_sample(self, x, delta_x, n):
+	def grid_sample(self, x, boundaries, n):
 		"""Sample n points around point x up to delta_x"""
 
-		x1 = np.linspace(x[0]-delta_x[0], x[0]+delta_x[0], n[0]*2)
-		x2 = np.linspace(x[1]-delta_x[1], x[1]+delta_x[1], n[1]*2)
+		x1 = np.linspace(x[0]-boundaries[0], x[0]+boundaries[0], n[0]*2)
+		x2 = np.linspace(x[1]-boundaries[1], x[1]+boundaries[1], n[1]*2)
 
 		X1, X2 = np.meshgrid(x1, x2, indexing='xy')
 
