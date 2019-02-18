@@ -47,7 +47,7 @@ class MNISTDataHandler():
 		# dataPoints = self._sqlsession.query(ValveReading)
 
 		if verbose == 1:
-			print("Loading data. Cros-Validation ratio {}".format(cross_validation_ratio))
+			print("Loading data. Cross-Validation ratio {}".format(cross_validation_ratio))
 
 		if cross_validation_ratio < 0 or cross_validation_ratio > 1:
 			print("Error, cross validation must be between 0 and 1")

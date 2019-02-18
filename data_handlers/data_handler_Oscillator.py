@@ -84,10 +84,10 @@ class OscillatorDataHandler():
 			self._X_train, self._X_crossVal, self._y_train, self._y_crossVal = train_test_split(self._X_train, self._y_train, train_size=1-cross_validation_ratio)
 
 
-	def sample_data(self, x, delta_x, n):
+	def sample_data(self, x, boundaries, n):
 		"""Generate train and test samples"""
 
-		X1, X2 = self.grid_sample(x, delta_x, n)
+		X1, X2 = self.grid_sample(x, boundaries, n)
 
 		n = X1.shape[0]
 		m = X1.shape[1]
