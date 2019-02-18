@@ -88,3 +88,7 @@ code/testFile\.txt
 *.DESKTOP-1HD7NSA
 
 data_handlers/\.ipynb_checkpoints/
+
+\.idea/
+
+tunable_model/\.ipynb_checkpoints/
