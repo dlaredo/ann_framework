@@ -1,14 +1,8 @@
-import os
 import numpy as np
-import random
-import pandas as pd
 import time
 import tensorflow as tf
-from keras.callbacks import TensorBoard
 
-from math import sqrt
-
-from .. import custom_scores, aux_functions
+from .. import custom_scores
 
 class TunableModel():
 
@@ -58,7 +52,7 @@ class TunableModel():
 				#SVG(model_to_dot(happyModel).create(prog='dot', format='svg'))
 
 
-	def train_model(self, verbose=0, learningRate_scheduler = None, tf_session=None, tensorboard=None, get_minibatches_function_handle=None, **kwargs):
+	def train_model(self, verbose=0, learningRate_scheduler=None, tf_session=None, tensorboard=None, get_minibatches_function_handle=None, **kwargs):
 		"""Train the current model using keras/scikit"""
 
 		startTime = time.clock()
@@ -87,7 +81,7 @@ class TunableModel():
 
 		elif self._lib_type == 'tensorflow':
 			if tf_session == None:
-				print("A valid tensorflow session is needed to perform the training")
+				print("A valid tensorflow session is needed to perform the operation")
 			else:
 				self.train_tf(tf_session, get_minibatches_function_handle=get_minibatches_function_handle, verbose=verbose, **kwargs)
 
@@ -125,10 +119,9 @@ class TunableModel():
 			self._y_predicted = self.__model.predict(X_test)
 		elif self._lib_type == 'tensorflow':
 			if tf_session == None:
-				print("A valid tensorflow session is needed to perform the training")
+				print("A valid tensorflow session is needed to perform the operation")
 			else:
-				print("tensorflow test")
-				self._y_predicted = self.predict_tf(tf_session)
+				self._y_predicted = self.predict_tf(X_test, tf_session)
 		else:
 			print('Library not supported')
 
@@ -149,6 +142,11 @@ class TunableModel():
 		#To reset all variables
 		tf_session.run(tf.global_variables_initializer())
 		avg_cost = 0.0
+		avg_cost_reg = 0.0
+
+		if get_minibatches_function_handle == None:
+			print("A function handle to generate the minibatches is required")
+			return
 
 		for epoch in range(self.epochs):
 
@@ -176,15 +174,14 @@ class TunableModel():
 		print("Epoch:Final", "cost_reg=", "{:.9f}".format(avg_cost_reg), "cost=", "{:.9f}".format(avg_cost))
 
 
-	def predict_tf(self, tf_session):
+	def predict_tf(self, X_test, tf_session):
 		"""Function to predict values using a model in tensorflow"""
 
 		#Retrieve model variables
 		X = self._model['X_placeholder']
-		y = self._model['y_placeholder']
 		y_pred = self._model['y_pred']
 
-		y_pred_vector = tf_session.run([y_pred], feed_dict={X:self.X_test})
+		y_pred_vector = tf_session.run(y_pred, feed_dict={X:X_test})
 
 		return y_pred_vector
 
@@ -357,20 +354,10 @@ class SequenceTunableModelRegression(TunableModel):
 			elif round == 2:
 				self._y_predicted_rounded = np.floor(self._y_predicted_rounded)
 
-			self._y_predicted_rounded =  np.ravel(self._y_predicted_rounded)
-
-			"""
-			if setLimits:
-				y_predicted = np.clip(self.__y_pred_rounded, setLimits[0], setLimits[1])
-			"""
-
 			if cross_validation == True:
 				y_true = self._y_crossVal
 			else:
 				y_true = self.y_test
-
-
-			y_true = np.ravel(y_true)
 
 			for metric in metrics:
 				score = custom_scores.compute_score(metric, y_true, self._y_predicted_rounded)
@@ -512,7 +499,7 @@ class SequenceTunableModelClassification(TunableModel):
 
 		def evaluate_model(self, metrics=[], cross_validation = False, round=0, tf_session=None):
 			"""Evaluate the performance of the model"""
-            
+
 			self.predict_model(cross_validation = cross_validation, tf_session = tf_session)
 
 			if cross_validation == True:
@@ -520,7 +507,7 @@ class SequenceTunableModelClassification(TunableModel):
 			else:
 				y_true = self.y_test
 
-			y_true = np.ravel(y_true)
+			#y_true = np.ravel(y_true)
 
 			for metric in metrics:
 				score = custom_scores.compute_score(metric, y_true, self._y_predicted)
