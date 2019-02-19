@@ -180,5 +180,14 @@ class MNISTDataHandler():
 	def y_test(self, y_test):
 		self._y_test = y_test
 
+	@property
+	def data_scaler(self):
+		return self._data_scaler
+
+	@data_scaler.setter
+	def data_scaler(self, data_scaler):
+		self._data_scaler = data_scaler
+	
+
 
 
