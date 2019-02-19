@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from keras.preprocessing.image import ImageDataGenerator
 
 class NIHDataHandler():
-	def __init__(self, data_file):
+	def __init__(self, data_file, data_scaler=None):
 		#ReadOnly properties
 		
 		self._data_file = data_file
@@ -18,6 +18,8 @@ class NIHDataHandler():
 		self._test_X = None
 		self._test_Y = None
 		self._train_gen = None
+
+		self._data_scaler = data_scaler
         
 	def load_csv_into_df(self, file_name): #file_name = data_file
 		"""Given the filename, load the data into a pandas dataframe"""

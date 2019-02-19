@@ -24,7 +24,7 @@ class MNISTDataHandler():
 
 	#Method definition
 
-	def __init__(self):
+	def __init__(self, data_scaler=None):
 
 		#Public properties
 		
@@ -36,6 +36,8 @@ class MNISTDataHandler():
 		self._y_train = None
 		self._y_crossVal = None
 		self._y_test = None
+
+		self._data_scaler = data_scaler
 
 
 
