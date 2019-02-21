@@ -38,11 +38,23 @@ def accuracy(y_true, y_pred):
 
     return accuracy
 
+def epsilon_rms(y_pred, y_real, deltas):
+    y_error = y_pred - y_real
+    numerator = np.dot(y_error, y_error.transpose()) * deltas ** 2
+    denominator = np.multiply(np.sum(y_real), deltas ** 2)
+
+    epsilon = np.sqrt(np.asscalar(numerator / denominator))
+
+    return epsilon
 
 score_dict = {'rhs':lambda x,y : rul_health_score(x,y), 'rmse':lambda x,y : root_mean_squared_error(x,y),
-              'mse':lambda x,y : mean_squared_error(x,y), 'accuracy':lambda x, y : accuracy(x, y)}
+              'mse':lambda x,y : mean_squared_error(x,y), 'accuracy':lambda x, y : accuracy(x, y),
+              'epsilon_rms':lambda x,y,deltas : epsilon_rms(x,y,deltas)}
+
 
 def compute_score(score_name, y_true, y_pred):
     
     score = score_dict[score_name](y_true, y_pred)
     return score
+
+
