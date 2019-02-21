@@ -29,7 +29,6 @@ class OscillatorDataHandler():
 		self._data_scaler = data_scaler
 
 
-
 	# Public
 	def load_data(self, verbose = 0, cross_validation_ratio = 0, unroll=False, **kwargs):
 		"""Unroll just to keep compatibility with the API"""
@@ -50,34 +49,8 @@ class OscillatorDataHandler():
 		if self._data_scaler != None:
 			self._X_train = self._data_scaler.fit_transform(self._X_train)
 
-		#print(self._X_train.shape[0])
-
 		#Test data is 10% of entire data
-		self._X_train, self._X_test, self._y_train, self._y_test = train_test_split(self._X_train, self._y_train, train_size=0.9)	
-
-		"""
-		print("X_train")
-		print(self._X_train.shape)
-		print(self._X_train)
-
-		print("y_train")
-		print(self._y_train.shape)		
-		print(self._y_train)
-
-		print("X_test")
-		print(self._X_test.shape)		
-		print(self._X_test)
-
-		print("y_test")
-		print(self._y_test.shape)
-		print(self._y_test)
-		"""
-
-		train_samples = self._X_train.shape[0]
-		test_samples = self._X_test.shape[0]
-
-		#print(train_samples)
-		#print(test_samples)
+		self._X_train, self._X_test, self._y_train, self._y_test = train_test_split(self._X_train, self._y_train, train_size=0.9)
 
 		#Create cross-validation
 		if cross_validation_ratio != 0:
@@ -95,23 +68,12 @@ class OscillatorDataHandler():
 		X = np.zeros([n*m, 2])
 		y = np.zeros([n*m, 1])
 
-		"""
-		print(X1)
-		print(X2)
-		print(n)
-		print(m)
-		"""
-
 		k = 0
 		for i in range(n):
 			for j in range(m):
 
-				X[k,:] = [X2[i, j], X1[i, j]]
+				X[k,:] = [X1[i, j], X2[i, j]]
 				k = k+1
-
-		#X = X.transpose()
-		#print(X)
-		#print(y)
 
 		return X, y
 
@@ -122,7 +84,7 @@ class OscillatorDataHandler():
 		x1 = np.linspace(x[0]-boundaries[0], x[0]+boundaries[0], n[0]*2)
 		x2 = np.linspace(x[1]-boundaries[1], x[1]+boundaries[1], n[1]*2)
 
-		X1, X2 = np.meshgrid(x1, x2, indexing='xy')
+		X1, X2 = np.meshgrid(x1, x2, indexing='ij')
 
 		return X1, X2
 
