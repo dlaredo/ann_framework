@@ -27,6 +27,10 @@ class TunableModel():
 			self._train_time = None
 			self._y_predicted = None
 
+			self._cross_validation_ratio = 0
+			self._data_unroll = False
+			self._data_loaded = False
+
 
 
 	def change_model(self, model_name, model, lib_type):
@@ -286,6 +290,18 @@ class TunableModel():
 	def y_predicted(self):
 		return self._y_predicted
 
+	@property
+	def cross_validation_ratio(self):
+		return self._cross_validation_ratio
+
+	@property
+	def data_unroll(self):
+		return self._data_unroll
+
+	@property
+	def data_loaded(self):
+		return self._data_loaded
+
 
 class SequenceTunableModelRegression(TunableModel):
 
@@ -301,11 +317,27 @@ class SequenceTunableModelRegression(TunableModel):
 			self._y_pred_rounded = None
 
 
-		def load_data(self, unroll=False, cross_validation_ratio=0, verbose=0, **kwargs):
+		def load_data(self, unroll=False, cross_validation_ratio=0, verbose=0, reload_data=False, **kwargs):
 			"""Load the data using the corresponding Data Handler, apply the corresponding scaling and reshape"""
 
-			#A call to the Data Handler is done, DataHandler must deliver data with shape X = (samples, features), y = (samples, size_output)
-			self._data_handler.load_data(unroll=unroll, verbose=verbose, cross_validation_ratio=cross_validation_ratio, **kwargs)
+			# A call to the Data Handler is done, DataHandler must deliver data with shape X = (samples, features), y = (samples, size_output)
+			# Data is loaded for the first time or if any data parameters changed or if user chooses to reload data
+			if reload_data == True or self._data_loaded == False or unroll != self._data_unroll or cross_validation_ratio != self._cross_validation_ratio:
+
+				if self._data_loaded == False:
+					print("Loading data for the first time")
+				if reload_data == True:
+					print("Reloading data per user's request")
+				if unroll != self._data_unroll or cross_validation_ratio != self._cross_validation_ratio:
+					print("Reloading data due to parameter change")
+
+
+				self._cross_validation_ratio = cross_validation_ratio
+				self._data_unroll = unroll
+				self._data_handler.load_data(unroll=self._data_unroll, verbose=verbose,
+											 cross_validation_ratio=self._cross_validation_ratio, **kwargs)
+			else:
+				print("Using previously loaded data")
 
 			#Fill the arrays with the data from the DataHandler
 			X_train = self._data_handler.X_train
@@ -338,6 +370,8 @@ class SequenceTunableModelRegression(TunableModel):
 			#self._y_train = np.ravel(self._y_train)
 			#self._y_crossVal = np.ravel(self._y_crossVal)
 			#self._y_test = np.ravel(self._y_test)
+
+			self._data_loaded = True
 
 
 		def evaluate_model(self, metrics=[], cross_validation = False, round = 0, tf_session=None):
@@ -458,11 +492,26 @@ class SequenceTunableModelClassification(TunableModel):
 			self._y_pred_rounded = None
 
 
-		def load_data(self, unroll=False, cross_validation_ratio=0, verbose=0, **kwargs):
+		def load_data(self, unroll=False, cross_validation_ratio=0, verbose=0, reload_data=False, **kwargs):
 			"""Load the data using the corresponding Data Handler, apply the corresponding scaling and reshape"""
 
-			#A call to the Data Handler is done, DataHandler must deliver data with shape X = (samples, features), y = (samples, size_output)
-			self._data_handler.load_data(unroll=unroll, verbose=verbose, cross_validation_ratio=cross_validation_ratio, **kwargs)
+			# A call to the Data Handler is done, DataHandler must deliver data with shape X = (samples, features), y = (samples, size_output)
+			# Data is loaded for the first time or if any data parameters changed or if user chooses to reload data
+			if reload_data == True or self._data_loaded == False or unroll != self._data_unroll or cross_validation_ratio != self._cross_validation_ratio:
+
+				if self._data_loaded == False:
+					print("Loading data for the first time")
+				if reload_data == True:
+					print("Reloading data per user's request")
+				if unroll != self._data_unroll or cross_validation_ratio != self._cross_validation_ratio:
+					print("Reloading data due to parameter change")
+
+				self._cross_validation_ratio = cross_validation_ratio
+				self._data_unroll = unroll
+				self._data_handler.load_data(unroll=self._data_unroll, verbose=verbose,
+											 cross_validation_ratio=self._cross_validation_ratio, **kwargs)
+			else:
+				print("Using previously loaded data")
 
 			#Fill the arrays with the data from the DataHandler
 			X_train = self._data_handler.X_train
@@ -495,6 +544,7 @@ class SequenceTunableModelClassification(TunableModel):
 			#self._y_train = np.ravel(self._y_train)
 			#self._y_crossVal = np.ravel(self._y_crossVal)
 			#self._y_test = np.ravel(self._y_test)
+			self._data_loaded = True
 
 
 		def evaluate_model(self, metrics=[], cross_validation = False, round=0, tf_session=None):
