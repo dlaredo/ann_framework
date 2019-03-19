@@ -29,7 +29,7 @@ class NIHDataHandler():
 		self._y_test = None
 		
 		self._train_gen = None
-		self._val_gen = None
+		self._valid_gen = None
 		self._data_scaler = data_scaler
 		
         
@@ -301,12 +301,12 @@ class NIHDataHandler():
 		self._train_gen = train_gen   
 
 	@property
-	def val_gen(self):
-		return self._val_gen
+	def valid_gen(self):
+		return self._valid_gen
 
-	@val_gen.setter
-	def val_gen(self, val_gen):
-		self._val_gen = val_gen          
+	@valid_gen.setter
+	def valid_gen(self, valid_gen):
+		self._valid_gen = valid_gen          
             
 	@property
 	def data_scaler(self):

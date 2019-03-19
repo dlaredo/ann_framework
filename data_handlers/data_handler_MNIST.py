@@ -59,9 +59,10 @@ class MNISTDataHandler():
 
 		train_samples = self._X_train.shape[0]
 		test_samples = self._X_test.shape[0]
-        
-		self._X_train = self._X_train.reshape(train_samples,-1)
-		self._X_test = self._X_test.reshape(test_samples,-1)
+
+		if unroll == True:
+			self._X_train = self._X_train.reshape(train_samples,-1)
+			self._X_test = self._X_test.reshape(test_samples,-1)
         
 		self._X_train = self._X_train.astype('float32')
 		self._X_test = self._X_test.astype('float32')
