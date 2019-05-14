@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 class NIHDataHandler():
 
-	def __init__(self, data_file, data_folder, data_scaler=None):
+	def __init__(self, data_file, data_folder, data_scaler=None, multi_labels=True):
 		#ReadOnly properties
 		
 		self._data_file = data_file
@@ -31,6 +31,8 @@ class NIHDataHandler():
 		self._train_gen = None
 		self._valid_gen = None
 		self._data_scaler = data_scaler
+
+		self._multi_labels = multi_labels
 		
         
 	def load_csv_into_df(self): #file_name = data_file
@@ -75,8 +77,19 @@ class NIHDataHandler():
 			weights /= weights.sum()
 
 		self._all_df = self.all_df.sample(number_samples, weights=weights) 
-	
-        
+
+		
+	def keep_n_diseases(self, patient):
+
+		disease_vector = patient[self._all_labels]
+		positive_diseases = np.nonzero(disease_vector)[0]
+		
+		if len(positive_diseases) > 1:
+			disease_vector[positive_diseases[1:]] = 0
+
+		return disease_vector
+		
+		
 	def load_data(self, verbose = 0, cross_validation_ratio = 0, unroll=None, prune_threshold=0, number_samples=0, resample_weights=None):    
 		"""Load the data"""
 
@@ -98,6 +111,16 @@ class NIHDataHandler():
 
 		#Generate label vector from all the diseases column
 		self._all_df['disease_vec'] = self._all_df.apply(lambda x: [x[self._all_labels].values], 1).map(lambda x: x[0])
+
+		#self._all_df[self._all_labels] = self._all_df.apply(lambda x : np.nonzero(x[self._all_labels].values == 1)[0], 1).map(lambda x: print(x))
+
+		#Keep only the first encountered disease
+		if self.multi_labels == False:
+			self._all_df[self._all_labels] = self._all_df.apply(self.keep_n_diseases, 1)
+
+		#Generate label vector from all the diseases column
+		self._all_df['disease_vec_n_only'] = self._all_df.apply(lambda x: [x[self._all_labels].values], 1).map(lambda x: x[0])
+
 		print(self._all_df)
 		
 		#Remove random_state after testing
@@ -322,7 +345,15 @@ class NIHDataHandler():
 
 	@normalize.setter
 	def normalize(self, normalize):
-		self._normalize = normalize        
+		self._normalize = normalize
+
+	@property
+	def multi_labels(self):
+		return self._multi_labels
+
+	@multi_labels.setter
+	def multi_labels(self, multi_labels):
+		self._multi_labels = multi_labels        
 
 	"""
 	@property
