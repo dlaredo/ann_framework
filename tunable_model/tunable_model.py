@@ -1,6 +1,7 @@
 import numpy as np
 import time
 import tensorflow as tf
+from tensorflow.python import debug as tf_debug
 
 from .. import custom_scores
 
@@ -159,6 +160,12 @@ class TunableModel():
 
 			#X_batches, y_batches, total_batch = aux_functions.get_minibatches(self.X_train, self.y_train, self._batch_size)
 			X_batches, y_batches, total_batch = get_minibatches_function_handle(self.X_train, self.y_train, self._batch_size, **kwargs)
+
+			"""
+			print(total_batch)
+			print(X_batches[0])
+			print(y_batches[0])
+			"""
 
 			#Train with the minibatches
 			for i in range(total_batch):
