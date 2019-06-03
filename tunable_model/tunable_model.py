@@ -144,6 +144,18 @@ class TunableModel():
 		total_cost = self._model['total_cost']
 		cost = self._model['cost']
 
+		enable_tensorboard = False
+		tb_refresh_epochs = 1
+
+		if "tb_writer" in kwargs:
+			enable_tensorboard = True
+			merged_summary = kwargs["merged_summary"]
+			tb_writer = kwargs["tb_writer"]
+
+			if "tb_refresh_epochs" in kwargs:
+				tb_refresh_epochs = kwargs["tb_refresh_epochs"]
+
+
 		#To reset all variables
 		tf_session.run(tf.global_variables_initializer())
 		avg_cost = 0.0
@@ -166,6 +178,10 @@ class TunableModel():
 			print(X_batches[0])
 			print(y_batches[0])
 			"""
+
+			if (epoch % tb_refresh_epochs == 0) and (enable_tensorboard == True):
+				s = tf_session.run(merged_summary, feed_dict={X: X_batches[0], y: y_batches[0]})
+				tb_writer.add_summary(s, epoch)
 
 			#Train with the minibatches
 			for i in range(total_batch):
