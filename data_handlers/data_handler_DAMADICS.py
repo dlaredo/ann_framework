@@ -220,7 +220,7 @@ class DamadicsDataHandler(SequenceDataHandler):
 		train_indices = self._sample_indices
 		cv_indices = []
 		test_indices = []
-
+        
 		if test_ratio != 0:
 			train_indices, test_indices = self.split_samples(train_indices, test_ratio, self._num_samples)
 
@@ -228,7 +228,7 @@ class DamadicsDataHandler(SequenceDataHandler):
 			train_indices, cv_indices = self.split_samples(train_indices, cross_validation_ratio, self._num_samples)
 
 		self._X_train_list, self._y_train_list, self._X_crossVal_list, self._y_crossVal_list, self._X_test_list, self._y_test_list = \
-			self.generate_lists(train_indices, cv_indices, test_indices)
+			self.generate_lists(train_indices, cv_indices, test_indices, num_samples_per_run=10)
 
 		self.generate_train_data(unroll)
 
@@ -248,7 +248,7 @@ class DamadicsDataHandler(SequenceDataHandler):
 		startTime = datetime.now()
 
 		shuffled_samples = list(range(0, num_samples))
-		#random.shuffle(shuffled_samples)
+		random.shuffle(shuffled_samples)
 
 		X_train_list, y_train_list = list(), list()
 		X_crossVal_list, y_crossVal_list = list(), list()
@@ -284,7 +284,7 @@ class DamadicsDataHandler(SequenceDataHandler):
 
 		return samples_train, samples_test
 
-	def generate_lists(self, train_indices, cv_indices, test_indices):
+	def generate_lists(self, train_indices, cv_indices, test_indices, num_samples_per_run):
 		"""Given the indices generate the lists from the dataframe"""
 
 		rnd_index = 0
@@ -308,36 +308,37 @@ class DamadicsDataHandler(SequenceDataHandler):
 		#print("cv_indices")
 		for indices in cv_indices:
 			#print(indices)
+            
+			for i in range(num_samples_per_run):
+				start_index, stop_index = self.get_test_sample_indices(indices)
 
-			start_index, stop_index = self.get_test_sample_indices(indices)
+				sample_x = self._X[start_index:stop_index, :]
+				sample_y = self._y[stop_index-1:stop_index, :]
 
-			sample_x = self._X[start_index:stop_index, :]
-			sample_y = self._y[stop_index-1:stop_index, :]
-
-			#print(sample_x)
-
-			test_list_X.append(sample_x)
-			test_list_y.append(sample_y)
+				#print(sample_x)
+				test_list_X.append(sample_x)
+				test_list_y.append(sample_y)
 
 		#print("test_indices")
 		#Test data is an instance of size sequence_size for each sample
 		for indices in test_indices:
 			#print(indices)
 
-			start_index, stop_index = self.get_test_sample_indices(indices)
+			for i in range(num_samples_per_run):
+				start_index, stop_index = self.get_test_sample_indices(indices)
 
-			#print(start_index)
-			#print(stop_index)
+				#print(start_index)
+				#print(stop_index)
 
-			sample_x = self._X[start_index:stop_index, :]
-			sample_y = self._y[stop_index-1:stop_index, :]
+				sample_x = self._X[start_index:stop_index, :]
+				sample_y = self._y[stop_index-1:stop_index, :]
 
 			#print("sample x")
 			#print(sample_x)
 			#print(sample_y)
 
-			test_list_X.append(sample_x)
-			test_list_y.append(sample_y)
+				test_list_X.append(sample_x)
+				test_list_y.append(sample_y)
 
 		return train_list_X, train_list_y, cv_list_X, cv_list_y, test_list_X, test_list_y
 
