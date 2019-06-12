@@ -120,8 +120,8 @@ class TunableModel():
 			default_scores.pop(0)
 		elif self._lib_type == 'scikit':
 			y_test = np.ravel(self._y_test)
-			self._scores["loss"] = self.__model.score(X = X_test, y = y_test)
-			self._y_predicted = self.__model.predict(X_test)
+			self._scores["loss"] = self._model.score(X = X_test, y = y_test)
+			self._y_predicted = self._model.predict(X_test)
 		elif self._lib_type == 'tensorflow':
 			if tf_session == None:
 				print("A valid tensorflow session is needed to perform the operation")
