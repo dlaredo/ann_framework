@@ -10,6 +10,8 @@ from datetime import datetime
 from damadicsDBMapping import *
 from .sequenced_data_handler import SequenceDataHandler
 
+from sklearn.utils import shuffle
+
 # IP Address: 169.236.181.40
 # User: readOnly
 # Password: _readOnly2019
@@ -156,14 +158,27 @@ class DamadicsDataHandler(SequenceDataHandler):
 
 
 	# Public
-	def load_data(self, start_time, end_time, verbose = 0, cross_validation_ratio = 0, test_ratio = 0.1, unroll = True):
+	def load_data(self, unroll = True, cross_validation_ratio = 0, verbose = 0, **kwargs):
 		"""Load the data using the specified parameters"""
 
-		if self._start_time == None or self._end_time == None:
-			self._start_time = start_time
-			self._end_time = end_time
+		start_date=kwargs['start_date']
+		end_date = kwargs['end_date']
+
+		if 'shuffle_samples' in kwargs:
+			shuffle_samples = kwargs['shuffle_samples']
 		else:
-			if self._start_time != start_time or self._end_time != end_time:
+			shuffle_samples = True
+
+		if 'test_ratio' in kwargs:
+			test_ratio = kwargs['test_ratio']
+		else:
+			test_ratio = 0.1
+
+		if self._start_time == None or self._end_time == None:
+			self._start_time = start_date
+			self._end_time = end_date
+		else:
+			if self._start_time != start_date or self._end_time != end_date:
 				print("Reload from DB")
 				self._load_from_db = True
 
@@ -186,13 +201,17 @@ class DamadicsDataHandler(SequenceDataHandler):
 			print("Loading data from database")
 
 			# These variables are where the entire data is saved at
-			self.extract_data_from_db(start_time, end_time)
+			self.extract_data_from_db(start_date, end_date)
 
 			# Find the number of samples obtained from the timeframe (a sample is defined as a run to failure cycle)
 			start_indices, fault_indices, discarded_top_index, discarded_bottom_index = self.retrieve_samples()
 			indices_shifted = start_indices[1:]
 			fault_indices.append(0)
 			indices_shifted.append(0)
+
+			#print("Retrieved runs")
+			#print(len(start_indices))
+			#print(start_indices)
 
 			#print(start_indices)
 			#print(fault_indices)
@@ -215,6 +234,10 @@ class DamadicsDataHandler(SequenceDataHandler):
 		else:
 			print("Loading data from memory")
 
+		#print("Available runs")
+		#print(len(self._sample_indices))
+		#print(self._sample_indices)
+
 		#Split up the data into its different samples
 		#Modify properties in the parent class, and let the parent class finish the data processing
 		train_indices = self._sample_indices
@@ -227,6 +250,12 @@ class DamadicsDataHandler(SequenceDataHandler):
 		if cross_validation_ratio != 0:
 			train_indices, cv_indices = self.split_samples(train_indices, cross_validation_ratio, self._num_samples)
 
+
+		#print("train indices")
+		#print(train_indices)
+		#print("test indices")
+		#print(test_indices)
+
 		self._X_train_list, self._y_train_list, self._X_crossVal_list, self._y_crossVal_list, self._X_test_list, self._y_test_list = \
 			self.generate_lists(train_indices, cv_indices, test_indices, num_samples_per_run=10)
 
@@ -237,6 +266,17 @@ class DamadicsDataHandler(SequenceDataHandler):
 
 		if test_ratio != 0:
 			self.generate_test_data(unroll)
+
+		#shuffle the data
+		if shuffle_samples:
+
+			self._X_train, self._y_train = shuffle(self._X_train, self._y_train)
+
+			if cross_validation_ratio != 0:
+				self._X_crossVal, self._y_crossVal = shuffle(self._X_crossVal, self._y_crossVal)
+
+			if test_ratio != 0:
+				self._X_test, self._y_test = shuffle(self._X_test, self._y_test)
 
 		self._load_from_db = False # As long as the dataframe doesnt change, there is no need to reload from file
 
@@ -261,6 +301,11 @@ class DamadicsDataHandler(SequenceDataHandler):
 		num_split_test = math.ceil(split_ratio*num_samples)
 		num_split_train = num_samples - num_split_test
 
+		print("split ratio %f:"%split_ratio)
+		print("num_sample %d:" % num_samples)
+		print("num_split_test %d:" % num_split_test)
+		print("num_split_test %d:" % num_split_train)
+
 		#print(num_split_train)
 		#print(num_split_test)
 
@@ -268,8 +313,8 @@ class DamadicsDataHandler(SequenceDataHandler):
 			print("Error: one of the two splits is left with 0 samples")
 			return
 
-		indices_test = shuffled_samples[num_split_test:]
-		indices_train = shuffled_samples[:num_split_test]
+		indices_train = shuffled_samples[:num_split_train]
+		indices_test = shuffled_samples[num_split_train:]
 
 		#print(indices_train)
 		#print(indices_test)
