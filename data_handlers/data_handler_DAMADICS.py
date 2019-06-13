@@ -25,15 +25,23 @@ class DamadicsDataHandler(SequenceDataHandler):
 
 	#Method definition
 
-	def __init__(self, selected_features, sequence_length = 1, sequence_stride = 1, data_scaler = None):
+	def __init__(self, selected_features, sequence_length = 1, sequence_stride = 1, data_scaler = None, **kwargs):
 
 		#Public properties
 
 		self._rectify_labels = False
 		self._data_scaler = data_scaler
 
-		self._start_time = None
-		self._end_time = None
+		if 'start_date' in kwargs:
+			self._start_time = kwargs['start_date']
+		else:
+			self._start_time = None
+
+		if 'end_date' in kwargs:
+			self._end_time = kwargs['end_date']
+		else:
+			self._end_time = None
+
 
 		# Database connection
 		self._load_from_db = True
@@ -77,11 +85,11 @@ class DamadicsDataHandler(SequenceDataHandler):
 			print("Error in connection to the database")
 
 
-	def extract_data_from_db(self, start_time, end_time):
+	def extract_data_from_db(self):
 
 		computation_start_time = datetime.now()
 
-		query = self._sqlsession.query(ValveReading).filter(ValveReading._timestamp.between(start_time, end_time))
+		query = self._sqlsession.query(ValveReading).filter(ValveReading._timestamp.between(self._start_time, self._end_time))
 
 		self._df = pd.read_sql(query.statement, self._sqlsession.bind)
 
@@ -161,8 +169,15 @@ class DamadicsDataHandler(SequenceDataHandler):
 	def load_data(self, unroll = True, cross_validation_ratio = 0, verbose = 0, **kwargs):
 		"""Load the data using the specified parameters"""
 
-		start_date=kwargs['start_date']
-		end_date = kwargs['end_date']
+		if 'start_date' in kwargs:
+			start_date = kwargs['start_date']
+		else:
+			start_date = self._start_time
+
+		if 'end_date' in kwargs:
+			end_date = kwargs['end_date']
+		else:
+			end_date = self._end_time
 
 		if 'shuffle_samples' in kwargs:
 			shuffle_samples = kwargs['shuffle_samples']
@@ -180,6 +195,8 @@ class DamadicsDataHandler(SequenceDataHandler):
 		else:
 			if self._start_time != start_date or self._end_time != end_date:
 				print("Reload from DB")
+				self._start_time = start_date
+				self._end_time = end_date
 				self._load_from_db = True
 
 		if verbose == 1:
@@ -201,7 +218,7 @@ class DamadicsDataHandler(SequenceDataHandler):
 			print("Loading data from database")
 
 			# These variables are where the entire data is saved at
-			self.extract_data_from_db(start_date, end_date)
+			self.extract_data_from_db()
 
 			# Find the number of samples obtained from the timeframe (a sample is defined as a run to failure cycle)
 			start_indices, fault_indices, discarded_top_index, discarded_bottom_index = self.retrieve_samples()
