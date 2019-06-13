@@ -187,7 +187,7 @@ class DamadicsDataHandler(SequenceDataHandler):
 		if 'test_ratio' in kwargs:
 			test_ratio = kwargs['test_ratio']
 		else:
-			test_ratio = 0.1
+			test_ratio = 0
 
 		if self._start_time == None or self._end_time == None:
 			self._start_time = start_date
@@ -264,14 +264,19 @@ class DamadicsDataHandler(SequenceDataHandler):
 		if test_ratio != 0:
 			train_indices, test_indices = self.split_samples(train_indices, test_ratio, self._num_samples)
 
+		print(cross_validation_ratio)
+
 		if cross_validation_ratio != 0:
+			print("splitting for cv")
 			train_indices, cv_indices = self.split_samples(train_indices, cross_validation_ratio, self._num_samples)
 
 
-		#print("train indices")
-		#print(train_indices)
-		#print("test indices")
-		#print(test_indices)
+		print("train indices")
+		print(train_indices)
+		print("test indices")
+		print(test_indices)
+		print("cv indices")
+		print(cv_indices)
 
 		self._X_train_list, self._y_train_list, self._X_crossVal_list, self._y_crossVal_list, self._X_test_list, self._y_test_list = \
 			self.generate_lists(train_indices, cv_indices, test_indices, num_samples_per_run=10)
@@ -279,6 +284,7 @@ class DamadicsDataHandler(SequenceDataHandler):
 		self.generate_train_data(unroll)
 
 		if cross_validation_ratio != 0:
+			print("generating crossval data")
 			self.generate_crossValidation_data(unroll)
 
 		if test_ratio != 0:
@@ -378,8 +384,8 @@ class DamadicsDataHandler(SequenceDataHandler):
 				sample_y = self._y[stop_index-1:stop_index, :]
 
 				#print(sample_x)
-				test_list_X.append(sample_x)
-				test_list_y.append(sample_y)
+				cv_list_X.append(sample_x)
+				cv_list_y.append(sample_y)
 
 		#print("test_indices")
 		#Test data is an instance of size sequence_size for each sample
