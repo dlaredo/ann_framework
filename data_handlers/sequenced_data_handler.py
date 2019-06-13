@@ -48,6 +48,9 @@ class SequenceDataHandler():
 		num_sequences = 0
 		num_samples = len(self._X_train_list)
 
+		if num_samples > 0:
+			num_classes = self._y_train_list[0].shape[1]
+
 		#Calculate the total number of sequences based on the number of individual sequences
 		for sample in self._X_train_list:
 			n_m = math.floor((sample.shape[0]-self._sequence_length)/self._sequence_stride) + 1
@@ -56,9 +59,9 @@ class SequenceDataHandler():
 
 		#Different shapes for the arrays depending wether data is to be unrolled or not
 		if unroll == True:
-			self._X_train, self._y_train = np.empty([num_sequences, self._feature_size*self._sequence_length]), np.empty([num_sequences, 1])
+			self._X_train, self._y_train = np.empty([num_sequences, self._feature_size*self._sequence_length]), np.empty([num_sequences, num_classes])
 		else:
-			self._X_train, self._y_train = np.empty([num_sequences, self._sequence_length, self._feature_size]), np.empty([num_sequences, 1])
+			self._X_train, self._y_train = np.empty([num_sequences, self._sequence_length, self._feature_size]), np.empty([num_sequences, num_classes])
 
 		k = 0
 		#Create the feature matrix by moving the sequence window for each sample
@@ -83,11 +86,14 @@ class SequenceDataHandler():
 
 		num_samples = len(self._X_test_list)
 
+		if num_samples > 0:
+			num_classes = self._y_test_list[0].shape[1]
+
 		#Different shapes for the arrays depending wether data is to be unrolled or not
 		if unroll == True:
-			self._X_test, self._y_test = np.empty([num_samples, self._feature_size*self._sequence_length]), np.empty([num_samples, 1])
+			self._X_test, self._y_test = np.empty([num_samples, self._feature_size*self._sequence_length]), np.empty([num_samples, num_classes])
 		else:
-			self._X_test, self._y_test = np.empty([num_samples, self._sequence_length, self._feature_size]), np.empty([num_samples, 1])
+			self._X_test, self._y_test = np.empty([num_samples, self._sequence_length, self._feature_size]), np.empty([num_samples, num_classes])
 
 		for i in range(num_samples):
 			sequence_samples = self._X_test_list[i][-self._sequence_length:,:]
@@ -99,9 +105,11 @@ class SequenceDataHandler():
 
 			self._y_test[i,:] = self._y_test_list[i]
 
+		"""
 		#In case cross validation is enabled
 		if len(self._X_crossVal_list) != 0:
 			self.generate_crossValidation_data(unroll)
+		"""
 			
 
 	def generate_crossValidation_data(self, unroll=True):
@@ -112,11 +120,14 @@ class SequenceDataHandler():
 
 		num_samples = len(self._X_crossVal_list)
 
+		if num_samples > 0:
+			num_classes = self._y_crossVal_list[0].shape[1]
+
 		#Different shapes for the arrays depending wether data is to be unrolled or not
 		if unroll == True:
-			self._X_crossVal, self._y_crossVal = np.empty([num_samples, self._feature_size*self._sequence_length]), np.empty([num_samples, 1])
+			self._X_crossVal, self._y_crossVal = np.empty([num_samples, self._feature_size*self._sequence_length]), np.empty([num_samples, num_classes])
 		else:
-			self._X_crossVal, self._y_crossVal = np.empty([num_samples, self._sequence_length, self._feature_size]), np.empty([num_samples, 1])
+			self._X_crossVal, self._y_crossVal = np.empty([num_samples, self._sequence_length, self._feature_size]), np.empty([num_samples, num_classes])
 
 		for i in range(num_samples):
 			sequence_samples = self._X_crossVal_list[i][-self._sequence_length:,:]

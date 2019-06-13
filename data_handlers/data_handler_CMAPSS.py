@@ -143,6 +143,7 @@ class CMAPSSDataHandler(SequenceDataHandler):
 		self._X_train_list, self._y_train_list, self._X_crossVal_list, self._y_crossVal_list = self.generate_train_arrays(cross_validation_ratio)
 		self._X_test_list = self.generate_test_arrays()
 		self._y_test_list = np.loadtxt(self._file_rul)
+		self._y_test_list = [rul.reshape(-1,1) for rul in self._y_test_list]
 
 
 	def load_data(self, unroll=True, cross_validation_ratio=0, verbose=0):
@@ -180,6 +181,7 @@ class CMAPSSDataHandler(SequenceDataHandler):
 		self.create_lists(cross_validation_ratio)
 
 		self.generate_train_data(unroll)
+		self.generate_crossValidation_data(unroll)
 		self.generate_test_data(unroll)
 
 		self._load_data_from_origin = False #As long as the dataframe nor the scaler change, there is no need to reload from file
@@ -209,13 +211,14 @@ class CMAPSSDataHandler(SequenceDataHandler):
 				data = df[self._selected_features].values
 				X_crossVal_list.append(data)
 				y_crossVal_list = rul_crossVal
+				y_crossVal_list = [rul.reshape(-1, 1) for rul in y_crossVal_list]
 
 
 		#Create a list with the data from train dataframe
 		grouped_by_unit = df_train.groupby('Unit Number')
 		for engine_number, df in grouped_by_unit:
 			data = df[self._selected_features].values
-			labels = df['RUL'].values
+			labels = df['RUL'].values.reshape(-1,1)
 			X_train_list.append(data)
 			y_train_list.append(labels)
 

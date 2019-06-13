@@ -11,6 +11,7 @@ from damadicsDBMapping import *
 from .sequenced_data_handler import SequenceDataHandler
 
 from sklearn.utils import shuffle
+from sklearn.preprocessing import OneHotEncoder
 
 # IP Address: 169.236.181.40
 # User: readOnly
@@ -32,6 +33,8 @@ class DamadicsDataHandler(SequenceDataHandler):
 		self._rectify_labels = False
 		self._data_scaler = data_scaler
 
+		#Parse kwargs
+
 		if 'start_date' in kwargs:
 			self._start_time = kwargs['start_date']
 		else:
@@ -41,6 +44,16 @@ class DamadicsDataHandler(SequenceDataHandler):
 			self._end_time = kwargs['end_date']
 		else:
 			self._end_time = None
+
+		if 'one_hot_encode' in kwargs:
+			self._one_hot_encode = kwargs['one_hot_encode']
+		else:
+			self._one_hot_encode = False
+
+		if 'binary_classes' in kwargs:
+			self._binary_classes = kwargs['binary_classes']
+		else:
+			self._binary_classes = False
 
 
 		# Database connection
@@ -107,6 +120,7 @@ class DamadicsDataHandler(SequenceDataHandler):
 
 		self._X = self._df.loc[:, column_names[:-1]].values
 		self._y = self._df.loc[:, column_names[len(column_names) - 1]].values
+		#self._y = y_full
 		self._y = self._y.reshape(-1, 1)
 
 		print("Extracting data from database runtime:", datetime.now() - computation_start_time)
@@ -169,6 +183,8 @@ class DamadicsDataHandler(SequenceDataHandler):
 	def load_data(self, unroll = True, cross_validation_ratio = 0, verbose = 0, **kwargs):
 		"""Load the data using the specified parameters"""
 
+		categories = np.arange(1, 21)
+
 		if 'start_date' in kwargs:
 			start_date = kwargs['start_date']
 		else:
@@ -226,6 +242,16 @@ class DamadicsDataHandler(SequenceDataHandler):
 			fault_indices.append(0)
 			indices_shifted.append(0)
 
+			# Classes are true or false only
+			if self._binary_classes == True:
+				self._y = np.array([-1 if int(y_train[0]) == 20 else 1 for y_train in self._y])
+				self._y = self._y.reshape(-1, 1)
+				categories = np.array([-1, 1])
+
+			if self._one_hot_encode == True:
+				encoder = OneHotEncoder(categories=[categories])
+				self._y = encoder.fit_transform(self._y).toarray()
+
 			#print("Retrieved runs")
 			#print(len(start_indices))
 			#print(start_indices)
@@ -264,19 +290,18 @@ class DamadicsDataHandler(SequenceDataHandler):
 		if test_ratio != 0:
 			train_indices, test_indices = self.split_samples(train_indices, test_ratio, self._num_samples)
 
-		print(cross_validation_ratio)
-
 		if cross_validation_ratio != 0:
-			print("splitting for cv")
 			train_indices, cv_indices = self.split_samples(train_indices, cross_validation_ratio, self._num_samples)
 
 
+		"""
 		print("train indices")
 		print(train_indices)
 		print("test indices")
 		print(test_indices)
 		print("cv indices")
 		print(cv_indices)
+		"""
 
 		self._X_train_list, self._y_train_list, self._X_crossVal_list, self._y_crossVal_list, self._X_test_list, self._y_test_list = \
 			self.generate_lists(train_indices, cv_indices, test_indices, num_samples_per_run=10)
@@ -284,7 +309,6 @@ class DamadicsDataHandler(SequenceDataHandler):
 		self.generate_train_data(unroll)
 
 		if cross_validation_ratio != 0:
-			print("generating crossval data")
 			self.generate_crossValidation_data(unroll)
 
 		if test_ratio != 0:
@@ -324,10 +348,12 @@ class DamadicsDataHandler(SequenceDataHandler):
 		num_split_test = math.ceil(split_ratio*num_samples)
 		num_split_train = num_samples - num_split_test
 
+		"""
 		print("split ratio %f:"%split_ratio)
 		print("num_sample %d:" % num_samples)
 		print("num_split_test %d:" % num_split_test)
 		print("num_split_test %d:" % num_split_train)
+		"""
 
 		#print(num_split_train)
 		#print(num_split_test)
@@ -348,7 +374,7 @@ class DamadicsDataHandler(SequenceDataHandler):
 		#print(samples_train)
 		#print(samples_test)
 
-		print("data splitting:",datetime.now() - startTime)
+		print("Data Splitting:",datetime.now() - startTime)
 
 		return samples_train, samples_test
 
