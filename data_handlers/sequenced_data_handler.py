@@ -189,7 +189,7 @@ class SequenceDataHandler():
 		"""Print the shapes of the data and the first 5 rows"""
 
 		if self.X_train is None:
-			print("No data available")
+			print("No training data available")
 			return
 
 		print("Printing shapes\n")
@@ -202,10 +202,15 @@ class SequenceDataHandler():
 			print("Cross-Validation data (X, y)")
 			print(self.X_crossVal.shape)
 			print(self.y_crossVal.shape)
+		else:
+			print("No cross validarion data is available")
 
-		print("Testing data (X, y)")
-		print(self.X_test.shape)
-		print(self.y_test.shape)
+		if self.X_test is not None:
+			print("Testing data (X, y)")
+			print(self.X_test.shape)
+			print(self.y_test.shape)
+		else:
+			print("No test data is available")
 
 		if print_top == True:
 			print("Printing first 5 elements\n")
@@ -218,10 +223,16 @@ class SequenceDataHandler():
 				print("Cross-Validation data (X, y)")
 				print(self.X_crossVal[:5,:])
 				print(self.y_crossVal[:5,:])
+			else:
+				print("No cross validation data is available")
 
-			print("Testing data (X, y)")
-			print(self.X_test[:5,:])
-			print(self.y_test[:5,:])
+			if self.X_test is not None:
+				print("Testing data (X, y)")
+				print(self.X_test[:5,:])
+				print(self.y_test[:5,:])
+			else:
+				print("No test data is available")
+
 		else:
 			print("Printing last 5 elements\n")
 			
@@ -233,10 +244,16 @@ class SequenceDataHandler():
 				print("Cross-Validation data (X, y)")
 				print(self.X_crossVal[-5:,:])
 				print(self.y_crossVal[-5:,:])
+			else:
+				print("No cross validation data is available")
 
-			print("Testing data (X, y)")
-			print(self.X_test[-5:,:])
-			print(self.y_test[-5:,:])
+			if self.X_test is not None:
+				print("Testing data (X, y)")
+				print(self.X_test[-5:,:])
+				print(self.y_test[-5:,:])
+			else:
+				print("No test data is available")
+
 			
 
 
