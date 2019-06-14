@@ -55,6 +55,10 @@ class DamadicsDataHandler(SequenceDataHandler):
 		else:
 			self._binary_classes = False
 
+		if 'test_data_only' in kwargs:
+			self._test_dhandler = kwargs['test_data_only']
+		else:
+			self._test_dhandler = False
 
 		# Database connection
 		self._load_from_db = True
@@ -101,8 +105,13 @@ class DamadicsDataHandler(SequenceDataHandler):
 	def extract_data_from_db(self):
 
 		computation_start_time = datetime.now()
-
-		query = self._sqlsession.query(ValveReading).filter(ValveReading._timestamp.between(self._start_time, self._end_time))
+        
+		if self._test_dhandler == False:
+			print("Reading data from ValveReading")
+			query = self._sqlsession.query(ValveReading).filter(ValveReading._timestamp.between(self._start_time, self._end_time))
+		else:
+			print("Reading data from ValveReadingTest")
+			query = self._sqlsession.query(ValveReadingTest).filter(ValveReadingTest._timestamp.between(self._start_time, self._end_time))
 
 		self._df = pd.read_sql(query.statement, self._sqlsession.bind)
 
