@@ -111,7 +111,6 @@ class TunableModel():
 			X_test = self._X_test
 			y_test = self._y_test
 
-
 		#Predict the output labels
 		if self._lib_type == 'keras':
 			default_scores = self._model.evaluate(x = X_test, y = y_test)
@@ -119,8 +118,8 @@ class TunableModel():
 			self._scores["loss"] = default_scores[0]
 			default_scores.pop(0)
 		elif self._lib_type == 'scikit':
-			y_test = np.ravel(self._y_test)
-			self._scores["loss"] = self._model.score(X = X_test, y = y_test)
+			#y_test = np.ravel(self._y_test)
+			self._scores["scikit score"] = self._model.score(X = X_test, y = y_test)
 			self._y_predicted = self._model.predict(X_test)
 		elif self._lib_type == 'tensorflow':
 			if tf_session == None:
@@ -402,7 +401,10 @@ class SequenceTunableModelRegression(TunableModel):
 
 			#tf.summary.FileWriter(logdir = "logs/viv_log")
             
-			self.predict_model(cross_validation = cross_validation, tf_session = tf_session)
+			#self.predict_model(cross_validation = cross_validation, tf_session = tf_session)
+			if self._y_predicted.size == 0:
+				print("No predicted data. First call predict function")
+				return
 
 			self._y_predicted_rounded = self._y_predicted
 
@@ -573,7 +575,11 @@ class SequenceTunableModelClassification(TunableModel):
 		def evaluate_model(self, metrics=[], cross_validation = False, round=0, tf_session=None):
 			"""Evaluate the performance of the model"""
 
-			self.predict_model(cross_validation = cross_validation, tf_session = tf_session)
+
+			#self.predict_model(cross_validation = cross_validation, tf_session = tf_session)
+			if self._y_predicted.size == 0:
+				print("No predicted data. First call predict function")
+				return
 
 			if cross_validation == True:
 				y_true = self._y_crossVal
