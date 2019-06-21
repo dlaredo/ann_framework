@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 from datetime import datetime
 
-from damadicsDBMapping import *
+from ann_framework.data_handlers.damadicsDBMapping import *
 from .sequenced_data_handler import SequenceDataHandler
 
 from sklearn.utils import shuffle
@@ -106,15 +106,15 @@ class DamadicsDataHandler(SequenceDataHandler):
 
 		computation_start_time = datetime.now()
         
-		if self._test_dhandler == False:
+		if self._test_dhandler == True:
 			print("Reading data from ValveReading")
 			query = self._sqlsession.query(ValveReading).filter(ValveReading._timestamp.between(self._start_time, self._end_time))
 		else:
 			print("Reading data from ValveReadingTest")
 			query = self._sqlsession.query(ValveReadingTest).filter(ValveReadingTest._timestamp.between(self._start_time, self._end_time))
-
+		#print(query)
 		self._df = pd.read_sql(query.statement, self._sqlsession.bind)
-
+		#print(self._df)
 		# TODO: need to check whether dataPoints is of type DataFrame. Needs to be in type DataFrame
 		# TODO: check whether column names are extracted out
 
@@ -129,9 +129,9 @@ class DamadicsDataHandler(SequenceDataHandler):
 
 		self._X = self._df.loc[:, column_names[:-1]].values
 		self._y = self._df.loc[:, column_names[len(column_names) - 1]].values
+
 		#self._y = y_full
 		self._y = self._y.reshape(-1, 1)
-
 		print("Extracting data from database runtime:", datetime.now() - computation_start_time)
 
 
@@ -151,7 +151,7 @@ class DamadicsDataHandler(SequenceDataHandler):
 		prev_state = 20
 		curr_state = 0
 		i = 0
-		num_instances  = len(self._y)
+		num_instances = len(self._y)
 
 		s_time = datetime.now()
 
@@ -159,6 +159,7 @@ class DamadicsDataHandler(SequenceDataHandler):
 
 		#Find the first non-faulty state of the valve and start from there
 		curr_state = self._y[i]
+		#print(self._y[i])
 		while(curr_state != 20 and i < num_instances):
 			i = i+1
 			curr_state = self._y[i]
@@ -189,7 +190,7 @@ class DamadicsDataHandler(SequenceDataHandler):
 
 
 	# Public
-	def load_data(self, unroll = True, cross_validation_ratio = 0, verbose = 0, **kwargs):
+	def load_data(self, unroll = True, cross_validation_ratio = 0, test_ratio = 0, verbose = 0, **kwargs):
 		"""Load the data using the specified parameters"""
 
 		categories = np.arange(1, 21)
@@ -209,10 +210,10 @@ class DamadicsDataHandler(SequenceDataHandler):
 		else:
 			shuffle_samples = True
 
-		if 'test_ratio' in kwargs:
-			test_ratio = kwargs['test_ratio']
-		else:
-			test_ratio = 0
+# 		if 'test_ratio' in kwargs:
+# 			test_ratio = kwargs['test_ratio']
+# 		else:
+# 			test_ratio = 0
 
 		if self._start_time == None or self._end_time == None:
 			self._start_time = start_date
@@ -225,7 +226,7 @@ class DamadicsDataHandler(SequenceDataHandler):
 				self._load_from_db = True
 
 		if verbose == 1:
-			print("Loading data for DAMADICS with window_size of {}, stride of {}. Cros-Validation ratio {}".format(self._sequence_length, self._sequence_stride, cross_validation_ratio))
+			print("Loading data for DAMADICS with window_size of {}, stride of {}. Cros-Validation ratio {}".format(self._sequence_length, self._sequence_stride, cross_validation_ratio, test_ratio))
 
 		if cross_validation_ratio < 0 or cross_validation_ratio > 1:
 			print("Error, cross validation must be between 0 and 1")
@@ -244,13 +245,15 @@ class DamadicsDataHandler(SequenceDataHandler):
 
 			# These variables are where the entire data is saved at
 			self.extract_data_from_db()
-
+			#print(self.y)
 			# Find the number of samples obtained from the timeframe (a sample is defined as a run to failure cycle)
 			start_indices, fault_indices, discarded_top_index, discarded_bottom_index = self.retrieve_samples()
+            
 			indices_shifted = start_indices[1:]
 			fault_indices.append(0)
 			indices_shifted.append(0)
 
+            
 			# Classes are true or false only
 			if self._binary_classes == True:
 				self._y = np.array([-1 if int(y_train[0]) == 20 else 1 for y_train in self._y])
@@ -269,14 +272,16 @@ class DamadicsDataHandler(SequenceDataHandler):
 			#print(fault_indices)
 			#print(indices_shifted)
 			indices = [index for index in zip(start_indices, fault_indices, indices_shifted)]
-			#print(indices)
-
+			#print(start_indices)
+			#print(fault_indices)
+            
 			#Drop last sample as there is no guarantee that the last one is complete. (need to fix this in case it is complete)
 			indices.pop()
 			self._sample_indices = indices
-
+			#print(self._sample_indices)
 			self._num_samples = len(self._sample_indices)
-
+			#print(self._num_samples)
+            
 			"""
 			print(self._sample_indices)
 			print(discarded_top_index)
@@ -300,8 +305,11 @@ class DamadicsDataHandler(SequenceDataHandler):
 			train_indices, test_indices = self.split_samples(train_indices, test_ratio, self._num_samples)
 
 		if cross_validation_ratio != 0:
+			#print(cross_validation_ratio) 
+			#print(self._num_samples) 
 			train_indices, cv_indices = self.split_samples(train_indices, cross_validation_ratio, self._num_samples)
-
+			#print(train_indices)
+			#print(cv_indices)  
 
 		"""
 		print("train indices")
@@ -421,6 +429,8 @@ class DamadicsDataHandler(SequenceDataHandler):
 				#print(sample_x)
 				cv_list_X.append(sample_x)
 				cv_list_y.append(sample_y)
+		#print(cv_list_X)
+		#print(cv_list_y)
 
 		#print("test_indices")
 		#Test data is an instance of size sequence_size for each sample
