@@ -376,10 +376,11 @@ class SequenceTunableModelRegression(TunableModel):
 			#self._data_scaler = None
 			if self._data_scaler != None:
 				X_train = self._data_scaler.fit_transform(X_train)
-				X_test = self._data_scaler.transform(X_test)
-
+				if X_test is not None:
+					X_test = self._data_scaler.transform(X_test)
 				if cross_validation_ratio > 0:
 					X_crossVal = self._data_scaler.transform(X_crossVal)
+
 
 			self._X_train = X_train
 			self._X_crossVal = X_crossVal
@@ -402,7 +403,7 @@ class SequenceTunableModelRegression(TunableModel):
 			#tf.summary.FileWriter(logdir = "logs/viv_log")
             
 			#self.predict_model(cross_validation = cross_validation, tf_session = tf_session)
-			if self._y_predicted.size == 0:
+			if self._y_predicted is None:
 				print("No predicted data. First call predict function")
 				return
 
@@ -553,10 +554,11 @@ class SequenceTunableModelClassification(TunableModel):
 			#self._data_scaler = None
 			if self._data_scaler != None:
 				X_train = self._data_scaler.fit_transform(X_train)
-				X_test = self._data_scaler.transform(X_test)
-
+				if X_test is not None:
+					X_test = self._data_scaler.transform(X_test)
 				if cross_validation_ratio > 0:
 					X_crossVal = self._data_scaler.transform(X_crossVal)
+
 
 			self._X_train = X_train
 			self._X_crossVal = X_crossVal
@@ -577,7 +579,10 @@ class SequenceTunableModelClassification(TunableModel):
 
 
 			#self.predict_model(cross_validation = cross_validation, tf_session = tf_session)
-			if self._y_predicted.size == 0:
+			#print("self._y_predicted")
+			#print(self._y_predicted)
+
+			if self._y_predicted is None:
 				print("No predicted data. First call predict function")
 				return
 
@@ -611,9 +616,10 @@ class SequenceTunableModelClassification(TunableModel):
 				print(self._X_crossVal.shape)
 				print(self._y_crossVal.shape)
 
-			print("Testing data (X, y)")
-			print(self._X_test.shape)
-			print(self._y_test.shape)
+			if self._X_test is not None:
+				print("Testing data (X, y)")
+				print(self._X_test.shape)
+				print(self._y_test.shape)
 
 			if print_top == True:
 				print("Printing first 5 elements\n")
@@ -627,9 +633,10 @@ class SequenceTunableModelClassification(TunableModel):
 					print(self._X_crossVal[:5,:])
 					print(self._y_crossVal[:5])
 
-				print("Testing data (X, y)")
-				print(self._X_test[:5,:])
-				print(self._y_test[:5])
+				if self._X_test is not None:
+					print("Testing data (X, y)")
+					print(self._X_test[:5,:])
+					print(self._y_test[:5])
 			else:
 				print("Printing last 5 elements\n")
 
@@ -641,10 +648,11 @@ class SequenceTunableModelClassification(TunableModel):
 					print("Cross-Validation data (X, y)")
 					print(self._X_crossVal[-5:,:])
 					print(self._y_crossVal[-5:])
-
-				print("Testing data (X, y)")
-				print(self._X_test[-5:,:])
-				print(self._y_test[-5:])
+                    
+				if self._X_test is not None:
+					print("Testing data (X, y)")
+					print(self._X_test[-5:,:])
+					print(self._y_test[-5:])
 
 
 		#Property definition
