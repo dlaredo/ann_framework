@@ -497,9 +497,9 @@ class DamadicsDataHandler(SequenceDataHandler):
 		sample_x = None
 		sample_y = None
 
-		print(train_indices)
-		print(cv_indices)
-		print(test_indices)
+		#print(train_indices)
+		#print(cv_indices)
+		#print(test_indices)
 
 		for indices in train_indices:
 
@@ -508,6 +508,10 @@ class DamadicsDataHandler(SequenceDataHandler):
 
 			train_list_X.append(sample_x)
 			train_list_y.append(sample_y)
+		train_numbers = len(train_list_X)
+
+		#print("number of training data")
+		#print(train_numbers)
 
 		for indices in cv_indices:
 
